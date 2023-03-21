@@ -2,7 +2,7 @@ import sys
 import numpy as np
 import matplotlib.pyplot as plt
 
-sys.path.append("mbot_lcm_msgs")
+sys.path.append("~/botlab-w23/build/mbot/mbot_lcm_msgs")
 import lcm
 from mbot_lcm_msgs import mbot_state_t
 

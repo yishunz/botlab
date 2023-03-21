@@ -19,6 +19,7 @@ lcm_serial_topic_map = {
     "MBOT_IMU" : 220,
     "MBOT_MOTOR_COMMAND" : 230,
     "MBOT_ENCODERS" : 240,
+    "MBOT_MOTOR_CTRL": 250,
 }
 
 #

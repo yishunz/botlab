@@ -28,7 +28,7 @@
  * and/or add different controllers. 
  * You will at least want to:
  *  - Add a form of PID to control the speed at which your
- *      robot reaches its target pose.
+ *      robot reaches its target pose. ???
  *  - Add a rotation element to the StratingManeuverController
  *      to maintian a avoid deviating from the intended path.
  *  - Limit (min max) the speeds that your robot is commanded
@@ -147,7 +147,7 @@ class SmartManeuverController : public ManeuverControllerBase
 {
 
 private:
-    float pid[3] = {1.0, 2.5, 0.0}; //kp, ka, kb
+    float pid[3] = {1.0, 0.1, 0.0}; //kp, ka, kb
     float d_end_crit = 0.02;
     float d_end_midsteps = 0.08;
     float angle_end_crit = 0.2;

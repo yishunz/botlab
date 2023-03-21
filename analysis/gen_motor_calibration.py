@@ -10,8 +10,8 @@
 import numpy as np
 import matplotlib.pyplot as plt
 
-m1 = np.loadtxt("../test_logs/1.1test_concrete_both_dir_m1.txt",skiprows = 1)
-m3 = np.loadtxt("../test_logs/1.1test_concrete_both_dir_m3.txt",skiprows = 1)
+m1 = np.loadtxt("../test_logs/1.1test_concrete_both_dir_m1_new.txt",skiprows = 1)
+m3 = np.loadtxt("../test_logs/1.1test_concrete_both_dir_m3_new.txt",skiprows = 1)
 print(m1.shape)
 print(m3.shape)
 

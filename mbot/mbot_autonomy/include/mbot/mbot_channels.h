@@ -16,6 +16,7 @@
 #define CONTROLLER_PATH_CHANNEL "CONTROLLER_PATH"
 
 #define BOTGUI_GOAL_CHANNEL "BOTGUI_GOAL" //separate channel for lcm-server excluding the motion controller
+#define MBOT_WHEEL_CTRL_CHANNEL "MBOT_WHEEL_CTRL"
 
 /////// Command channels ///////
 
@@ -25,5 +26,6 @@
 #define MESSAGE_CONFIRMATION_CHANNEL "MSG_CONFIRM"
 
 #define MBOT_SYSTEM_RESET_CHANNEL "MBOT_SYSTEM_RESET"
+
 
 #endif // MBOT_CHANNELS_H

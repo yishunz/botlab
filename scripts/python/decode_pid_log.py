@@ -2,9 +2,10 @@ import sys
 import numpy as np
 import matplotlib.pyplot as plt
 
-sys.path.append("mbot_lcm_msgs")
+sys.path.append("~/botlab-w23/system_compilation/python/mbot_lcm_msgs/mbot_wheel_ctrl_t.py")
 import lcm
-from mbot_lcm_msgs import mbot_wheel_ctrl_t
+# from mbot_lcm_msgs import mbot_wheel_ctrl_t
+import mbot_wheel_ctrl_t
 
 if len(sys.argv) < 2:
     sys.stderr.write("usage: decode_log.py <logfile>")
@@ -39,10 +40,11 @@ for event in log:
         )
 
 plt.plot(data[:, 0], data[:, 3])
+plt.plot(data[:, 0], data[:, 4])
 plt.plot(data[:, 0], data[:, 1])
 plt.plot(data[:, 0], data[:, 2])
 plt.plot(data[:, 0], data[:, 5])
 plt.plot(data[:, 0], data[:, 6])
-plt.legend(["Input Velocity", "L_PWM", "R_PWM", "L_VEL", "R_VEL"])
+plt.legend(["Input Velocity Left","Input Velocity Right", "L_PWM", "R_PWM", "L_VEL", "R_VEL"])
 
 plt.show()

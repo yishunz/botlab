@@ -3,9 +3,8 @@ package mbot_lcm_msgs;
 struct mbot_wheel_ctrl_t
 {
     int64_t utime;
-
-    float left_motor_pwm; // [-1.0..1.0]
-    float right_motor_pwm; // [-1.0..1.0]
+    float left_motor_pwm;
+    float right_motor_pwm;
     float left_motor_vel_cmd;
     float right_motor_vel_cmd;
     float left_motor_vel;
