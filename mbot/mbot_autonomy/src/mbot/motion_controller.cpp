@@ -147,7 +147,7 @@ class SmartManeuverController : public ManeuverControllerBase
 {
 
 private:
-    float pid[3] = {1.0, 2.5, 0.0}; //kp, ka, kb
+    float pid[3] = {1.0, 2.5, -0.3}; //kp, ka, kb
     float d_end_crit = 0.02;
     float d_end_midsteps = 0.08;
     float angle_end_crit = 0.2;
@@ -419,11 +419,11 @@ int main(int argc, char** argv)
             mbot_lcm_msgs::mbot_motor_command_t cmd = controller.updateCommand();
             // Limit command values
             // Fwd vel
-            if (cmd.trans_v > 0.3) cmd.trans_v = 0.3;
-            else if (cmd.trans_v < -0.3) cmd.trans_v = -0.3;
+            if (cmd.trans_v > 0.8) cmd.trans_v = 0.8;
+            else if (cmd.trans_v < -0.8) cmd.trans_v = -0.8;
 
             // Angular vel
-            float max_ang_vel = M_PI * 2.0 / 3.0;
+            float max_ang_vel = M_PI ;
             if (cmd.angular_v > max_ang_vel) cmd.angular_v = max_ang_vel;
             else if (cmd.angular_v < -max_ang_vel) cmd.angular_v = -max_ang_vel;
 

@@ -40,6 +40,19 @@ target_include_directories(drive_square PRIVATE
   include
 )
 
+# zigzag
+add_executable(zigzag src/mbot/add_drive_zigzag.cpp)
+
+target_link_libraries(zigzag
+  common_utils
+  lcm
+  mbot_lcm_msgs-cpp  mbot_lcm_msgs-cpp
+
+)
+target_include_directories(zigzag PRIVATE
+  include
+)
+
 # SLAM
 add_executable(slam src/slam/slam_main.cpp
   src/slam/action_model.cpp
