@@ -147,9 +147,9 @@ class SmartManeuverController : public ManeuverControllerBase
 {
 
 private:
-    float pid[3] = {1.0, 2.5, -0.3}; //kp, ka, kb
+    float pid[3] = {0.8, 1.18, -0.06}; //kp, ka, kb 0.8, 1.0, -0.4;0.8,1.1,-0.05
     float d_end_crit = 0.02;
-    float d_end_midsteps = 0.08;
+    float d_end_midsteps = 0.04;
     float angle_end_crit = 0.2;
 public:
     SmartManeuverController() = default;   
@@ -163,12 +163,12 @@ public:
         // printf("alpha: %f\n", alpha);
 
         // // To avoid weird behaviour at alpha=pi/2, because it is a common case
-        float margin = 2 * M_PI / 180;
-        if (fabs(alpha) > M_PI_2 + margin)
-        {
-            alpha = wrap_to_pi(alpha - M_PI);
-            vel_sign = -1;
-        }
+        // float margin = 2 * M_PI / 180;
+        // if (fabs(alpha) > M_PI_2 + margin)
+        // {
+        //     alpha = wrap_to_pi(alpha - M_PI);
+        //     vel_sign = -1;
+        // }
 
         // float beta = wrap_to_pi(target.theta -(alpha + pose.theta));
         float beta = angle_diff(target.theta, (alpha + pose.theta));
@@ -177,7 +177,7 @@ public:
         float turn_vel = pid[1] * alpha + pid[2] * beta;
 
         // If alpha is more than 45 degrees, turn in place and then go
-        if (fabs(alpha) > M_PI_4)
+        if (fabs(alpha) > M_PI/10) // M_PI_4
         {
             fwd_vel = 0;
         }
@@ -189,6 +189,7 @@ public:
     virtual bool target_reached(const mbot_lcm_msgs::pose_xyt_t& pose, const mbot_lcm_msgs::pose_xyt_t& target, bool is_end_pose)  override
     {
         float distance = d_end_midsteps;
+        float angle_distance = angle_end_crit;
         if (is_end_pose)
             distance = d_end_crit;
         return ((fabs(pose.x - target.x) < distance) && (fabs(pose.y - target.y)  < distance));
@@ -423,7 +424,7 @@ int main(int argc, char** argv)
             else if (cmd.trans_v < -0.8) cmd.trans_v = -0.8;
 
             // Angular vel
-            float max_ang_vel = M_PI ;
+            float max_ang_vel = M_PI;
             if (cmd.angular_v > max_ang_vel) cmd.angular_v = max_ang_vel;
             else if (cmd.angular_v < -max_ang_vel) cmd.angular_v = -max_ang_vel;
 
