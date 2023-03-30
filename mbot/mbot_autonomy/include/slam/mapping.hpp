@@ -33,6 +33,8 @@ public:
     * \param    map             OccupancyGrid instance to be updated
     */
     void updateMap(const mbot_lcm_msgs::lidar_t& scan, const mbot_lcm_msgs::pose_xyt_t& pose, OccupancyGrid& map);
+    CellOdds overflowAdd(CellOdds co, int8_t k);
+    CellOdds overflowSub(CellOdds co, int8_t k);
 
 private:
     
