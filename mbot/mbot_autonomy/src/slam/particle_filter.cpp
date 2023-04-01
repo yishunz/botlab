@@ -4,7 +4,7 @@
 #include <mbot_lcm_msgs/pose_xyt_t.hpp>
 #include <mbot_lcm_msgs/particle_t.hpp>
 #include <cassert>
-
+#include <common_utils/geometric/angle_functions.hpp>
 
 ParticleFilter::ParticleFilter(int numParticles)
 : kNumParticles_ (numParticles),
@@ -20,6 +20,17 @@ ParticleFilter::ParticleFilter(int numParticles)
 void ParticleFilter::initializeFilterAtPose(const mbot_lcm_msgs::pose_xyt_t& pose)
 {
     ///////////// TODO: Implement your method for initializing the particles in the particle filter /////////////////
+    double particleWeight= 1.0/kNumParticles_;
+    posteriorPose_ = pose;
+
+    for (auto & p:posterior_){
+        p.pose.x = posteriorPose_.x;
+        p.pose.y = posteriorPose_.y;
+        p.pose.theta = wrap_to_pi(posteriorPose_.theta);
+        p.parent_pose = p.pose;
+        p.pose.utime = pose.utime;
+        p.weight = particleWeight;
+    }
 }
 
 void ParticleFilter::initializeFilterRandomly(const OccupancyGrid& map)
@@ -88,6 +99,7 @@ ParticleList ParticleFilter::resamplePosteriorDistribution(const OccupancyGrid* 
 {
     //////////// TODO: Implement your algorithm for resampling from the posterior distribution ///////////////////
     ParticleList prior;
+    
     return prior;
 }
 
@@ -96,6 +108,9 @@ ParticleList ParticleFilter::computeProposalDistribution(const ParticleList& pri
 {
     //////////// TODO: Implement your algorithm for creating the proposal distribution by sampling from the ActionModel
     ParticleList proposal;
+    for (auto & p: prior){
+        proposal.push_back(actionModel_.applyAction(p));
+    }
     return proposal;
 }
 
@@ -107,6 +122,16 @@ ParticleList ParticleFilter::computeNormalizedPosterior(const ParticleList& prop
     /////////// TODO: Implement your algorithm for computing the normalized posterior distribution using the
     ///////////       particles in the proposal distribution
     ParticleList posterior;
+    double sumWeights = 0.0;
+    for (auto & p:proposal){
+        mbot_lcm_msgs::particle_t weighted = p;
+        weighted.weight = sensorModel_.likelihood(weighted, laser, map);
+        sumWeights += weighted.weight;
+        posterior.push_back(weighted);
+    }
+    for (auto & p : posterior){
+        p.weight /= sumWeights;
+    }
     return posterior;
 }
 

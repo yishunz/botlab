@@ -52,6 +52,7 @@ public:
     double likelihood(const mbot_lcm_msgs::particle_t& particle,
                       const mbot_lcm_msgs::lidar_t& scan,
                       const OccupancyGrid& map);
+    double scoreRay(const adjusted_ray_t ray,const OccupancyGrid& map);
 
     float max_scan_score;  // TODO: make getter
 
