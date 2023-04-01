@@ -99,7 +99,9 @@ ParticleList ParticleFilter::resamplePosteriorDistribution(const OccupancyGrid* 
 {
     //////////// TODO: Implement your algorithm for resampling from the posterior distribution ///////////////////
     ParticleList prior;
-    
+    double particleWeights = 1.0/kNumParticles_;
+
+
     return prior;
 }
 
@@ -140,6 +142,8 @@ mbot_lcm_msgs::pose_xyt_t ParticleFilter::estimatePosteriorPose(const ParticleLi
 {
     //////// TODO: Implement your method for computing the final pose estimate based on the posterior distribution
     mbot_lcm_msgs::pose_xyt_t pose;
+    //maybe do a kmeans?
+    pose  = computeParticlesAverage(posterior);
     return pose;
 }
 
@@ -147,5 +151,14 @@ mbot_lcm_msgs::pose_xyt_t ParticleFilter::computeParticlesAverage(const Particle
 {
     //////// TODO: Implement your method for computing the average of a pose distribution
     mbot_lcm_msgs::pose_xyt_t avg_pose;
+    double cosThetaMean = 0.0;
+    double sinThetaMean = 0.0;
+    for (auto &p : particles_to_average){
+        avg_pose.x += p.pose.x * p.weight;
+        avg_pose.y += p.pose.y * p.weight;
+        cosThetaMean += std::cos(p.pose.theta) * p.weight;
+        sinThetaMean += std::sin(p.pose.theta) * p.weight;
+    }
+    avg_pose.theta = std::atan2(sinThetaMean, cosThetaMean);
     return avg_pose;
 }
