@@ -112,8 +112,8 @@ ParticleList ParticleFilter::resamplePosteriorDistribution(const OccupancyGrid* 
     int i = 0;
     double u;
     double wavg = 0.0;
-    for (int m = 1; i< kNumParticles_; m++){
-        u = r+(m-1)/kNumParticles_;
+    for (int m = 0; m< kNumParticles_; m++){
+        u = r+(m)/kNumParticles_;
         while (u>c){
             i++;
             c+=posterior_.at(i).weight;
