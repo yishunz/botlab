@@ -36,6 +36,14 @@ void ParticleFilter::initializeFilterAtPose(const mbot_lcm_msgs::pose_xyt_t& pos
 void ParticleFilter::initializeFilterRandomly(const OccupancyGrid& map)
 {
     ///////////// TODO: Implement your method for initializing the particles in the particle filter /////////////////
+    randomPoseGen.update_map(&map);
+    double particleWeight= 1.0/kNumParticles_;
+
+    for (auto & p:posterior_){
+        p = randomPoseGen.get_particle();
+        p.weight = particleWeight;
+    }
+    posteriorPose_ = estimatePosteriorPose(posterior_);
 }
 
 void ParticleFilter::resetOdometry(const mbot_lcm_msgs::pose_xyt_t& odometry)
@@ -56,7 +64,6 @@ mbot_lcm_msgs::pose_xyt_t ParticleFilter::updateFilter(const mbot_lcm_msgs::pose
     // OPTIONAL TODO: Add reinvigoration step
     posteriorPose_ = estimatePosteriorPose(posterior_);
     posteriorPose_.utime = odometry.utime;
-
     return posteriorPose_;
 }
 
@@ -100,8 +107,32 @@ ParticleList ParticleFilter::resamplePosteriorDistribution(const OccupancyGrid* 
     //////////// TODO: Implement your algorithm for resampling from the posterior distribution ///////////////////
     ParticleList prior;
     double particleWeights = 1.0/kNumParticles_;
+    double r = rand()/RAND_MAX/kNumParticles_;
+    double c = posterior_.at(0).weight; 
+    int i = 0;
+    double u;
+    double wavg = 0.0;
+    for (int m = 1; i< kNumParticles_; m++){
+        u = r+(m-1)/kNumParticles_;
+        while (u>c){
+            i++;
+            c+=posterior_.at(i).weight;
+        } 
+        prior.push_back(posterior_.at(i));
+        wavg += 1/kNumParticles_*posterior_.at(i).weight;
+    }
 
-
+    ParticleList priorMCL;
+    samplingAugmentation.insert_average_weight(wavg);
+    randomPoseGen.update_map(map);
+    // deal with losing diversity using MCL;
+    for (auto & p:prior){
+        if (samplingAugmentation.sample_randomly()){
+            priorMCL.push_back(randomPoseGen.get_particle());
+        }else{
+            priorMCL.push_back(p);
+        }
+    }
     return prior;
 }
 

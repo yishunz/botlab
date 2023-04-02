@@ -136,8 +136,6 @@ private:
         float rand_sample_prob;
         std::default_random_engine generator;
         std::uniform_real_distribution<double> uniform_distribution;
-
-
     } 
     samplingAugmentation;
 
