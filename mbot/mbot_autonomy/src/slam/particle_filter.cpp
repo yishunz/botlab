@@ -105,35 +105,35 @@ mbot_lcm_msgs::particles_t ParticleFilter::particles(void) const
 ParticleList ParticleFilter::resamplePosteriorDistribution(const OccupancyGrid* map)
 {
     //////////// TODO: Implement your algorithm for resampling from the posterior distribution ///////////////////
-    ParticleList prior;
-    double particleWeights = 1.0/kNumParticles_;
-    double r = rand()/RAND_MAX/kNumParticles_;
-    double c = posterior_.at(0).weight; 
-    int i = 0;
-    double u;
-    double wavg = 0.0;
-    for (int m = 0; m< kNumParticles_; m++){
-        u = r+(m)/kNumParticles_;
-        while (u>c){
-            i++;
-            c+=posterior_.at(i).weight;
-        } 
-        prior.push_back(posterior_.at(i));
-        wavg += 1/kNumParticles_*posterior_.at(i).weight;
-    }
+    // ParticleList prior;
+    // double particleWeights = 1.0/kNumParticles_;
+    // double r = rand()/RAND_MAX/kNumParticles_;
+    // double c = posterior_.at(0).weight; 
+    // int i = 0;
+    // double u;
+    // double wavg = 0.0;
+    // for (int m = 0; m< kNumParticles_; m++){
+    //     u = r+(m)/kNumParticles_;
+    //     while (u>c){
+    //         i++;
+    //         c+=posterior_.at(i).weight;
+    //     } 
+    //     prior.push_back(posterior_.at(i));
+    //     wavg += 1/kNumParticles_*posterior_.at(i).weight;
+    // }
 
-    ParticleList priorMCL;
-    samplingAugmentation.insert_average_weight(wavg);
-    randomPoseGen.update_map(map);
-    // deal with losing diversity using MCL;
-    for (auto & p:prior){
-        if (samplingAugmentation.sample_randomly()){
-            priorMCL.push_back(randomPoseGen.get_particle());
-        }else{
-            priorMCL.push_back(p);
-        }
-    }
-    return prior;
+    // ParticleList priorMCL;
+    // samplingAugmentation.insert_average_weight(wavg);
+    // randomPoseGen.update_map(map);
+    // // deal with losing diversity using MCL;
+    // for (auto & p:prior){
+    //     if (samplingAugmentation.sample_randomly()){
+    //         priorMCL.push_back(randomPoseGen.get_particle());
+    //     }else{
+    //         priorMCL.push_back(p);
+    //     }
+    // }
+    return posterior_;
 }
 
 
@@ -143,6 +143,7 @@ ParticleList ParticleFilter::computeProposalDistribution(const ParticleList& pri
     ParticleList proposal;
     for (auto & p: prior){
         proposal.push_back(actionModel_.applyAction(p));
+        //proposal.push_back(p);
     }
     return proposal;
 }

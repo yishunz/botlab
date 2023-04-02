@@ -82,7 +82,7 @@ private:
     double rot2_;
     bool moved_;
     //bool initialized_;
-    int64_t utime_;
+
 
 
     double rot1Std_;
