@@ -38,6 +38,7 @@ double SensorModel::scoreRay(const adjusted_ray_t ray,const OccupancyGrid& map)
         rayScore = map.logOdds(f_end.x,f_end.y);
         return rayScore;
     }else{
+        rayScore = 0.0;
         // cell before 
         Point<int> cell_before;
         Point<int> start_cell;    

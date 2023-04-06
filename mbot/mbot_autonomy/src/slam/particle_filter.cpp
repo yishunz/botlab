@@ -105,20 +105,31 @@ mbot_lcm_msgs::particles_t ParticleFilter::particles(void) const
 ParticleList ParticleFilter::resamplePosteriorDistribution(const OccupancyGrid* map)
 {
     //////////// TODO: Implement your algorithm for resampling from the posterior distribution ///////////////////
-    // ParticleList prior;
-    // double particleWeights = 1.0/kNumParticles_;
+    ParticleList prior = posterior_;
+    double particleWeights = 1.0/kNumParticles_;
+    std::random_device rd;
+    std::mt19937 generator(rd());
+    std::normal_distritbution <> dist(0.0,0.01);
+    for (auto & p: prior){
+        p.pose.x = posteriorPose_.x + dist(generator);
+        p.pose.y = posteriorPose_.y + dist(generator);
+        p.pose.theta = posteriorPose_.theta + dist(generator);
+        p.pose.utime = posteriorPose_.utime;
+        p.parent_pose = posteriorPose_;
+        p.weight = particleWeights;
+    }
     // double r = rand()/RAND_MAX/kNumParticles_;
     // double c = posterior_.at(0).weight; 
-    // int i = 0;
+    // int i = 1;
     // double u;
     // double wavg = 0.0;
-    // for (int m = 0; m< kNumParticles_; m++){
-    //     u = r+(m)/kNumParticles_;
+    // for (int m = 1; m< kNumParticles_; m++){
+    //     u = r+(m-1)/kNumParticles_;
     //     while (u>c){
     //         i++;
-    //         c+=posterior_.at(i).weight;
+    //         c+=posterior_.at(i-1).weight;
     //     } 
-    //     prior.push_back(posterior_.at(i));
+    //     prior.push_back(posterior_.at(i-1));
     //     wavg += 1/kNumParticles_*posterior_.at(i).weight;
     // }
 
@@ -133,7 +144,7 @@ ParticleList ParticleFilter::resamplePosteriorDistribution(const OccupancyGrid* 
     //         priorMCL.push_back(p);
     //     }
     // }
-    return posterior_;
+    return prior;
 }
 
 
@@ -174,7 +185,11 @@ mbot_lcm_msgs::pose_xyt_t ParticleFilter::estimatePosteriorPose(const ParticleLi
 {
     //////// TODO: Implement your method for computing the final pose estimate based on the posterior distribution
     mbot_lcm_msgs::pose_xyt_t pose;
+    ParticleList best_particles;
     //maybe do a kmeans?
+    // for (auto &p: posterior){
+
+    // }   
     pose  = computeParticlesAverage(posterior);
     return pose;
 }
