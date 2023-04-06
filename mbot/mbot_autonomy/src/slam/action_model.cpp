@@ -65,6 +65,7 @@ bool ActionModel::updateAction(const mbot_lcm_msgs::pose_xyt_t& odometry)
         transStd_ = sqrt(k2_* abs(trans_));
         rot2Std_ = sqrt(k1_ * abs(rot2_));
     }
+    trans_ *= direction;
     previousPose_ = odometry;
     utime_ = odometry.utime;
     return moved_;
