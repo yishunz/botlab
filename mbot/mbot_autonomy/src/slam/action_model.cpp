@@ -53,14 +53,19 @@ bool ActionModel::updateAction(const mbot_lcm_msgs::pose_xyt_t& odometry)
     float deltaTheta = odometry.theta - previousPose_.theta;
     trans_ = sqrt(deltaX*deltaX + deltaY*deltaY);
     rot1_ = angle_diff(atan2(deltaY,deltaX),previousPose_.theta);
+    float direction;
+    if(abs(rot1_) > M_PI/2){
+        rot1_ = angle_diff(M_PI,rot1_);
+        direction = -1;
+    }
     rot2_ = angle_diff(deltaTheta, rot1_);
-
     moved_ = (deltaX != 0)||(deltaY !=0)||(deltaTheta != 0);
     if(moved_){
         rot1Std_ = sqrt(k1_ * abs(rot1_));
         transStd_ = sqrt(k2_* abs(trans_));
         rot2Std_ = sqrt(k1_ * abs(rot2_));
     }
+    trans_ *= direction;
     previousPose_ = odometry;
     utime_ = odometry.utime;
     return moved_;
