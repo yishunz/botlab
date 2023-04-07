@@ -6,6 +6,9 @@
 #include <cassert>
 #include <common_utils/geometric/angle_functions.hpp>
 
+#include <iostream>
+#include <fstream>
+
 ParticleFilter::ParticleFilter(int numParticles)
 : kNumParticles_ (numParticles),
   samplingAugmentation(0.5, 0.9, numParticles),
@@ -126,25 +129,32 @@ ParticleList ParticleFilter::resamplePosteriorDistribution(const OccupancyGrid* 
     int i = 1;
     double u;
     double wavg = 0.0;
-    
+    std::ofstream weightfile;
+    std::ofstream particleifile;
+    weightfile.open("weightt.txt");
+    particleifile.open("particle.txt");
     for (int m = 1; m<= kNumParticles_; m++){
-        std::cout<<m<<std::endl;
         u = r+static_cast<double>((m-1))/kNumParticles_;
         while (u>c){
             i++;
             c+=posterior_.at(i-1).weight;
         } 
+        
         prior.push_back(posterior_.at(i-1));
+        particleifile<<i-1<<"\n";
         // wavg += 1/kNumParticles_*posterior_.at(i).weight;
 
         // prior.at(i-1).weight = 1.0/kNumParticles_;
-        // std::cout<<"weight:"<<posterior_.at(i-1).weight<<std::endl;
 
     }
+    
     for (auto & p:prior){
+        weightfile<<p.weight<<"\n";
         p.weight = 1.0/kNumParticles_;
-        std::cout<<"weight:"<<p.weight<<std::endl;
+        // std::cout<<"weight:"<<p.weight<<std::endl;
     }
+    weightfile.close();
+    particleifile.close();
     // std::cout<<"numparticles:"<<kNumParticles_<<std::endl;
 
 
@@ -188,12 +198,14 @@ ParticleList ParticleFilter::computeNormalizedPosterior(const ParticleList& prop
         // std::cout<<"before:"<<p.weight<<std::endl;
         weighted.weight = sensorModel_.likelihood(weighted, laser, map);
         // plot particle position and its likelihood;
-        std::cout<<"after:"<<weighted.weight<<std::endl;
         sumWeights += weighted.weight;
         posterior.push_back(weighted);
     }
     std::cout<<"sumw:"<<sumWeights<<std::endl;
-
+    // for (auto & p : posterior){
+    //         p.weight = 1.0/kNumParticles_;
+            
+    // }
     if (sumWeights == 0.0){
         for (auto & p : posterior){
             p.weight = 1.0/kNumParticles_;
@@ -201,10 +213,12 @@ ParticleList ParticleFilter::computeNormalizedPosterior(const ParticleList& prop
         }
     }else{
         for (auto & p : posterior){
+            // std::cout<<p.weight <<" "<<sumWeights <<std::endl;
             p.weight /= sumWeights;
-            
+            // std::cout<<p.weight <<std::endl;
         }
     }
+    // posterior = proposal;
     return posterior;
 }
 
@@ -217,10 +231,10 @@ mbot_lcm_msgs::pose_xyt_t ParticleFilter::estimatePosteriorPose(const ParticleLi
     double threshold  = 0.0;
     for (auto &p: posterior){
         // std::cout<<"w:"<<p.weight<<std::endl;
-        best_particles.push_back(p);
-        // if (p.weight > -100){
-        //     best_particles.push_back(p);
-        // }
+        // best_particles.push_back(p);
+        if (p.weight > 1.0*1/kNumParticles_){
+            best_particles.push_back(p);
+        }
     }
     pose  = computeParticlesAverage(best_particles);
     return pose;
@@ -230,9 +244,13 @@ mbot_lcm_msgs::pose_xyt_t ParticleFilter::computeParticlesAverage(const Particle
 {
     //////// TODO: Implement your method for computing the average of a pose distribution
     mbot_lcm_msgs::pose_xyt_t avg_pose;
+    avg_pose.x = 0.0;
+    avg_pose.y = 0.0;
+    avg_pose.theta = 0.0;
     double cosThetaMean = 0.0;
     double sinThetaMean = 0.0;
     for (auto &p : particles_to_average){
+        // std::cout<<p.pose.x<<" "<<p.weight<<std::endl;
         avg_pose.x += p.pose.x * p.weight;
         avg_pose.y += p.pose.y * p.weight;
         cosThetaMean += std::cos(p.pose.theta) * p.weight;

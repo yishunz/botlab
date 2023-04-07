@@ -29,7 +29,7 @@ double SensorModel::likelihood(const mbot_lcm_msgs::particle_t& sample,
 
 double SensorModel::scoreRay(const adjusted_ray_t ray,const OccupancyGrid& map)
 {
-    double rayScore = 0.0;
+    double rayScore = 0.00001;
     double maxScore = 127;
     Point<int> f_end = global_position_to_grid_cell(
         Point<float>(
@@ -40,9 +40,7 @@ double SensorModel::scoreRay(const adjusted_ray_t ray,const OccupancyGrid& map)
     
     if (map.logOdds(f_end.x,f_end.y) > 0.0){
         rayScore = map.logOdds(f_end.x,f_end.y)/maxScore;
-        return rayScore;
     }else{
-        rayScore = 0.0;
         // cell before 
         Point<int> cell_before;
         Point<int> start_cell;    
@@ -83,10 +81,12 @@ double SensorModel::scoreRay(const adjusted_ray_t ray,const OccupancyGrid& map)
         // check the cell before and after
         double rayScoreBefore = map.logOdds(cell_before.x,cell_before.y);
         double rayScoreAfter = map.logOdds(cell_after.x,cell_after.y);
-        rayScore = (0.5*rayScoreBefore+0.5*rayScoreAfter)/maxScore;
-        if (rayScore < 0){
-            rayScore = 0.0;
+        double rayScoreAlt = (0.5*rayScoreBefore+0.5*rayScoreAfter)/maxScore;
+        if (rayScoreAlt > 0){
+            rayScore = rayScoreAlt;
         }
+        // std::cout<<"rayscore"<<rayScore<<std::endl;
+
     }
-    return rayScore;
+    return pow(rayScore,1);
 }
