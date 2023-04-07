@@ -9,7 +9,7 @@
 
 ActionModel::ActionModel(void)
 : k1_(0.01f)
-, k2_(0.005f)
+, k2_(0.01f)
 , min_dist_(0.0025)
 , min_theta_(0.02)
 , initialized_(false)
@@ -53,7 +53,7 @@ bool ActionModel::updateAction(const mbot_lcm_msgs::pose_xyt_t& odometry)
     float deltaTheta = odometry.theta - previousPose_.theta;
     trans_ = sqrt(deltaX*deltaX + deltaY*deltaY);
     rot1_ = angle_diff(atan2(deltaY,deltaX),previousPose_.theta);
-    float direction;
+    float direction = 1;
     if(abs(rot1_) > M_PI/2){
         rot1_ = angle_diff(M_PI,rot1_);
         direction = -1;
@@ -85,15 +85,6 @@ mbot_lcm_msgs::particle_t ActionModel::applyAction(const mbot_lcm_msgs::particle
     newSample.pose.theta = wrap_to_pi(sample.pose.theta + sampleRot1 + sampleRot2);
     newSample.pose.utime = utime_;
     newSample.parent_pose = sample.pose;
-
-    
-    
-    
-    
-    
-    
-    
-    
     
 
         // std::normal_distribution<double>epsilon1(0,k1_*fabs(alpha_));

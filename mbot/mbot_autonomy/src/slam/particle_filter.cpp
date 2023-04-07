@@ -31,6 +31,7 @@ void ParticleFilter::initializeFilterAtPose(const mbot_lcm_msgs::pose_xyt_t& pos
         p.pose.utime = pose.utime;
         p.weight = particleWeight;
     }
+    
 }
 
 void ParticleFilter::initializeFilterRandomly(const OccupancyGrid& map)
@@ -106,10 +107,10 @@ ParticleList ParticleFilter::resamplePosteriorDistribution(const OccupancyGrid* 
 {
     //////////// TODO: Implement your algorithm for resampling from the posterior distribution ///////////////////
     ParticleList prior;
-    double particleWeights = 1.0/kNumParticles_;
-    std::random_device rd;
-    std::mt19937 generator(rd());
-    std::normal_distribution<> dist(0.0,0.01);
+    // double particleWeights = 1.0/kNumParticles_;
+    // std::random_device rd;
+    // std::mt19937 generator(rd());
+    // std::normal_distribution<> dist(0.0,0.01);
     // for (auto & p: prior){
     //     p.pose.x = posteriorPose_.x + dist(generator);
     //     p.pose.y = posteriorPose_.y + dist(generator);
@@ -119,35 +120,46 @@ ParticleList ParticleFilter::resamplePosteriorDistribution(const OccupancyGrid* 
     //     p.weight = particleWeights;
     // }
 
-    // ParticleList prior;
-    double r = rand()/RAND_MAX/kNumParticles_;
+    // std::cout<<"num"<<kNumParticles_<<std::endl;
+    double r = static_cast<double>(rand())/RAND_MAX/kNumParticles_;
     double c = posterior_.at(0).weight; 
     int i = 1;
     double u;
     double wavg = 0.0;
     
     for (int m = 1; m<= kNumParticles_; m++){
-        u = r+(m-1)/kNumParticles_;
+        std::cout<<m<<std::endl;
+        u = r+static_cast<double>((m-1))/kNumParticles_;
         while (u>c){
             i++;
             c+=posterior_.at(i-1).weight;
         } 
         prior.push_back(posterior_.at(i-1));
-        wavg += 1/kNumParticles_*posterior_.at(i).weight;
-    }
+        // wavg += 1/kNumParticles_*posterior_.at(i).weight;
 
-    ParticleList priorMCL;
-    samplingAugmentation.insert_average_weight(wavg);
-    randomPoseGen.update_map(map);
-    // deal with losing diversity using MCL;
-    for (auto & p:prior){
-        if (samplingAugmentation.sample_randomly()){
-            priorMCL.push_back(randomPoseGen.get_particle());
-        }else{
-            priorMCL.push_back(p);
-        }
+        // prior.at(i-1).weight = 1.0/kNumParticles_;
+        // std::cout<<"weight:"<<posterior_.at(i-1).weight<<std::endl;
+
     }
-    return priorMCL;
+    for (auto & p:prior){
+        p.weight = 1.0/kNumParticles_;
+        std::cout<<"weight:"<<p.weight<<std::endl;
+    }
+    // std::cout<<"numparticles:"<<kNumParticles_<<std::endl;
+
+
+    // ParticleList priorMCL;
+    // samplingAugmentation.insert_average_weight(wavg);
+    // randomPoseGen.update_map(map);
+    // // deal with losing diversity using MCL;
+    // for (auto & p:prior){
+    //     if (samplingAugmentation.sample_randomly()){
+    //         priorMCL.push_back(randomPoseGen.get_particle());
+    //     }else{
+    //         priorMCL.push_back(p);
+    //     }
+    // }
+    return prior;
 }
 
 
@@ -173,12 +185,25 @@ ParticleList ParticleFilter::computeNormalizedPosterior(const ParticleList& prop
     double sumWeights = 0.0;
     for (auto & p:proposal){
         mbot_lcm_msgs::particle_t weighted = p;
+        // std::cout<<"before:"<<p.weight<<std::endl;
         weighted.weight = sensorModel_.likelihood(weighted, laser, map);
+        // plot particle position and its likelihood;
+        std::cout<<"after:"<<weighted.weight<<std::endl;
         sumWeights += weighted.weight;
         posterior.push_back(weighted);
     }
-    for (auto & p : posterior){
-        p.weight /= sumWeights;
+    std::cout<<"sumw:"<<sumWeights<<std::endl;
+
+    if (sumWeights == 0.0){
+        for (auto & p : posterior){
+            p.weight = 1.0/kNumParticles_;
+            
+        }
+    }else{
+        for (auto & p : posterior){
+            p.weight /= sumWeights;
+            
+        }
     }
     return posterior;
 }
@@ -189,11 +214,15 @@ mbot_lcm_msgs::pose_xyt_t ParticleFilter::estimatePosteriorPose(const ParticleLi
     //////// TODO: Implement your method for computing the final pose estimate based on the posterior distribution
     mbot_lcm_msgs::pose_xyt_t pose;
     ParticleList best_particles;
-    //maybe do a kmeans?
-    // for (auto &p: posterior){
-
-    // }   
-    pose  = computeParticlesAverage(posterior);
+    double threshold  = 0.0;
+    for (auto &p: posterior){
+        // std::cout<<"w:"<<p.weight<<std::endl;
+        best_particles.push_back(p);
+        // if (p.weight > -100){
+        //     best_particles.push_back(p);
+        // }
+    }
+    pose  = computeParticlesAverage(best_particles);
     return pose;
 }
 
