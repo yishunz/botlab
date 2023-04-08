@@ -61,7 +61,6 @@ mbot_lcm_msgs::pose_xyt_t ParticleFilter::updateFilter(const mbot_lcm_msgs::pose
                                                         const OccupancyGrid& map)
 {
     bool hasRobotMoved = actionModel_.updateAction(odometry);
-
     auto prior = resamplePosteriorDistribution(&map);
     auto proposal = computeProposalDistribution(prior);
     posterior_ = computeNormalizedPosterior(proposal, laser, map);
@@ -80,12 +79,13 @@ mbot_lcm_msgs::pose_xyt_t ParticleFilter::updateFilterActionOnly(const mbot_lcm_
     if(hasRobotMoved)
     {
         auto prior = resamplePosteriorDistribution();
+        // std::cout<<"size"<<prior.size() <<std::endl;
         auto proposal = computeProposalDistribution(prior);
         posterior_ = proposal;
     }
 
     posteriorPose_ = odometry;
-
+    posteriorPose_ = estimatePosteriorPose(posterior_); // addded this line
     return posteriorPose_;
 }
 
@@ -109,7 +109,7 @@ mbot_lcm_msgs::particles_t ParticleFilter::particles(void) const
 ParticleList ParticleFilter::resamplePosteriorDistribution(const OccupancyGrid* map)
 {
     //////////// TODO: Implement your algorithm for resampling from the posterior distribution ///////////////////
-    ParticleList prior;
+    // ParticleList prior = posterior_;
     // double particleWeights = 1.0/kNumParticles_;
     // std::random_device rd;
     // std::mt19937 generator(rd());
@@ -123,15 +123,16 @@ ParticleList ParticleFilter::resamplePosteriorDistribution(const OccupancyGrid* 
     //     p.weight = particleWeights;
     // }
 
+    ParticleList prior;
     // std::cout<<"num"<<kNumParticles_<<std::endl;
     double r = static_cast<double>(rand())/RAND_MAX/kNumParticles_;
     double c = posterior_.at(0).weight; 
     int i = 1;
-    double u;
+    double u = 0.0;
     double wavg = 0.0;
     std::ofstream weightfile;
     std::ofstream particleifile;
-    weightfile.open("weightt.txt");
+    weightfile.open("weight.txt");
     particleifile.open("particle.txt");
     for (int m = 1; m<= kNumParticles_; m++){
         u = r+static_cast<double>((m-1))/kNumParticles_;
@@ -142,22 +143,15 @@ ParticleList ParticleFilter::resamplePosteriorDistribution(const OccupancyGrid* 
         
         prior.push_back(posterior_.at(i-1));
         particleifile<<i-1<<"\n";
-        // wavg += 1/kNumParticles_*posterior_.at(i).weight;
-
-        // prior.at(i-1).weight = 1.0/kNumParticles_;
-
     }
-    
-    for (auto & p:prior){
+
+
+    // std::cout<<"numparticles:"<<kNumParticles_<<std::endl;
+    for (auto & p:posterior_){
         weightfile<<p.weight<<"\n";
-        p.weight = 1.0/kNumParticles_;
-        // std::cout<<"weight:"<<p.weight<<std::endl;
     }
     weightfile.close();
     particleifile.close();
-    // std::cout<<"numparticles:"<<kNumParticles_<<std::endl;
-
-
     // ParticleList priorMCL;
     // samplingAugmentation.insert_average_weight(wavg);
     // randomPoseGen.update_map(map);
@@ -180,6 +174,11 @@ ParticleList ParticleFilter::computeProposalDistribution(const ParticleList& pri
     for (auto & p: prior){
         proposal.push_back(actionModel_.applyAction(p));
         //proposal.push_back(p);
+        // p = actionModel_.applyAction(p);
+        double distance =  sqrt(pow(p.pose.x - p.parent_pose.x,2)+pow(p.pose.y - p.parent_pose.y,2));
+        if (distance > 2){
+            std::cout<<"computeproposal"<<distance<<std::endl;
+        }
     }
     return proposal;
 }
@@ -193,32 +192,45 @@ ParticleList ParticleFilter::computeNormalizedPosterior(const ParticleList& prop
     ///////////       particles in the proposal distribution
     ParticleList posterior;
     double sumWeights = 0.0;
+    // std::cout<<"before:"<<proposal.size()<<std::endl;
+
     for (auto & p:proposal){
         mbot_lcm_msgs::particle_t weighted = p;
         // std::cout<<"before:"<<p.weight<<std::endl;
-        weighted.weight = sensorModel_.likelihood(weighted, laser, map);
+        weighted.weight = sensorModel_.likelihood(p, laser, map);
+        // p.weight = 0.01;
+        if (weighted.weight == 0.0) {
+            weighted.weight = 0.00000001;
+        }
         // plot particle position and its likelihood;
         sumWeights += weighted.weight;
+        // std::cout<<p.weight <<std::endl;
+
         posterior.push_back(weighted);
+        double distance =  sqrt(pow(p.pose.x - p.parent_pose.x,2)+pow(p.pose.y - p.parent_pose.y,2));
+        if (distance > 2){
+            std::cout<<"computenormalized"<<distance<<std::endl;
+        }
     }
-    std::cout<<"sumw:"<<sumWeights<<std::endl;
+    // posterior = proposal;
+    // std::cout<<"sumw:"<<sumWeights<<std::endl;
     // for (auto & p : posterior){
     //         p.weight = 1.0/kNumParticles_;
             
     // }
-    if (sumWeights == 0.0){
-        for (auto & p : posterior){
-            p.weight = 1.0/kNumParticles_;
-            
-        }
-    }else{
-        for (auto & p : posterior){
-            // std::cout<<p.weight <<" "<<sumWeights <<std::endl;
-            p.weight /= sumWeights;
-            // std::cout<<p.weight <<std::endl;
-        }
+    // if (sumWeights == 0.0){
+    //     for (auto & p : posterior){
+    //         p.weight = 1.0/kNumParticles_;
+    //         std::cout<<p.weight <<std::endl;
+    //     }
+    // }else{
+    for (auto & p : posterior){
+        // std::cout<<p.weight <<" "<<sumWeights <<std::endl;
+        p.weight /= static_cast<double>(sumWeights);
+        // p.weight = 0.01;
+        // std::cout<<p.weight <<std::endl;
     }
-    // posterior = proposal;
+    // }
     return posterior;
 }
 
@@ -232,10 +244,15 @@ mbot_lcm_msgs::pose_xyt_t ParticleFilter::estimatePosteriorPose(const ParticleLi
     for (auto &p: posterior){
         // std::cout<<"w:"<<p.weight<<std::endl;
         // best_particles.push_back(p);
-        if (p.weight > 1.0*1/kNumParticles_){
+        if (p.weight >= 1.0*1/kNumParticles_){
             best_particles.push_back(p);
         }
+        double distance =  sqrt(pow(p.pose.x - p.parent_pose.x,2)+pow(p.pose.y - p.parent_pose.y,2));
+        if (distance > 2){
+            // std::cout<<distance<<std::endl;
+        }
     }
+    
     pose  = computeParticlesAverage(best_particles);
     return pose;
 }

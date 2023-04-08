@@ -9,7 +9,7 @@
 
 ActionModel::ActionModel(void)
 : k1_(0.01f)
-, k2_(0.01f)
+, k2_(0.005f)
 , min_dist_(0.0025)
 , min_theta_(0.02)
 , initialized_(false)
@@ -86,6 +86,13 @@ mbot_lcm_msgs::particle_t ActionModel::applyAction(const mbot_lcm_msgs::particle
     newSample.pose.utime = utime_;
     newSample.parent_pose = sample.pose;
     
+    double distance =  sqrt(pow(sample.pose.x - newSample.parent_pose.x,2)+pow(sample.pose.y - newSample.parent_pose.y,2));
+    if (distance > 5){
+        std::cout<<"dist" << distance <<std::endl;
+        // std::cout<<"trans:"<<sampleTrans <<std::endl;
+        // std::cout<<"theta:"<<sampleRot1 <<","<<sampleRot2<<std::endl;
+
+    }
 
         // std::normal_distribution<double>epsilon1(0,k1_*fabs(alpha_));
     // std::normal_distribution<double>epsilon2(0,k2_*fabs(ds_));

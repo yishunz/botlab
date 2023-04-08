@@ -128,10 +128,10 @@ void draw_particles(const mbot_lcm_msgs::particles_t& particles, vx_buffer_t* bu
     {
       particle_plot[2*i] = temp.pose.x;
       particle_plot[2*i + 1] = temp.pose.y;
-      particle_color[4*i] = 255; // * temp.weight;      //red
+      particle_color[4*i] = 255*temp.weight;      //red
       particle_color[4*i + 1] = 0;    //green
       particle_color[4*i + 2] = 0;  //-255*temp.weight + 255;    //blue
-      particle_color[4*i + 3] = 255;  //alpha
+      particle_color[4*i + 3] = 255*temp.weight;  //alpha
       i++;
     }
 
