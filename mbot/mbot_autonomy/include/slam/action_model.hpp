@@ -63,6 +63,7 @@ private:
     double min_theta_;
 
     mbot_lcm_msgs::pose_xyt_t previousPose_;
+    // mbot_lcm_msgs::pose_xyt_t prevPose_;
 
     double dx_;
     double dy_;
@@ -81,7 +82,7 @@ private:
     double trans_;
     double rot2_;
     bool moved_;
-    //bool initialized_;
+    // bool initialized_;
 
 
 

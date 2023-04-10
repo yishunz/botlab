@@ -6,7 +6,6 @@
 #include <iostream>
 #include <algorithm>
 
-
 ActionModel::ActionModel(void)
 : k1_(0.01f)
 , k2_(0.005f)
@@ -19,12 +18,11 @@ ActionModel::ActionModel(void)
     numberGenerator_ = std::mt19937(rd());
 }
 
-
-void ActionModel::resetPrevious(const mbot_lcm_msgs::pose_xyt_t& odometry)
+void ActionModel::resetPrevious(const mbot_lcm_msgs::pose_xyt_t &odometry)
 {
-    previousPose_ = odometry;
+    // previousPose_ = odometry;
+    // prv_odo_ = odometry;
 }
-
 
 bool ActionModel::updateAction(const mbot_lcm_msgs::pose_xyt_t& odometry)
 {
@@ -53,10 +51,10 @@ bool ActionModel::updateAction(const mbot_lcm_msgs::pose_xyt_t& odometry)
     float deltaTheta = odometry.theta - previousPose_.theta;
     trans_ = sqrt(deltaX*deltaX + deltaY*deltaY);
     rot1_ = angle_diff(atan2(deltaY,deltaX),previousPose_.theta);
-    float direction = 1;
-    if(abs(rot1_) > M_PI/2){
+    float direction = 1.0;//change to 1.0?
+    if(abs(rot1_) > M_PI/2.0){
         rot1_ = angle_diff(M_PI,rot1_);
-        direction = -1;
+        direction = -1.0;
     }
     rot2_ = angle_diff(deltaTheta, rot1_);
     moved_ = (deltaX != 0)||(deltaY !=0)||(deltaTheta != 0);
@@ -71,30 +69,30 @@ bool ActionModel::updateAction(const mbot_lcm_msgs::pose_xyt_t& odometry)
     return moved_;
 }
 
-mbot_lcm_msgs::particle_t ActionModel::applyAction(const mbot_lcm_msgs::particle_t& sample)
+mbot_lcm_msgs::particle_t ActionModel::applyAction(const mbot_lcm_msgs::particle_t &sample)
 {
     ////////////// TODO: Implement your code for sampling new poses from the distribution computed in updateAction //////////////////////
     // Make sure you create a new valid particle_t. Don't forget to set the new time and new parent_pose.
     mbot_lcm_msgs::particle_t newSample = sample;
-    float sampleRot1 = std::normal_distribution<>(rot1_,rot1Std_)(numberGenerator_);
-    float sampleTrans = std::normal_distribution<>(trans_,transStd_)(numberGenerator_);
-    float sampleRot2 = std::normal_distribution<>(rot2_,rot2Std_)(numberGenerator_);
+    float sampleRot1 = std::normal_distribution<>(rot1_, rot1Std_)(numberGenerator_);
+    float sampleTrans = std::normal_distribution<>(trans_, transStd_)(numberGenerator_);
+    float sampleRot2 = std::normal_distribution<>(rot2_, rot2Std_)(numberGenerator_);
 
-    newSample.pose.x += sampleTrans*cos(sample.pose.theta + sampleRot1);
-    newSample.pose.y += sampleTrans*sin(sample.pose.theta + sampleRot1);
+    newSample.pose.x += sampleTrans * cos(sample.pose.theta + sampleRot1);
+    newSample.pose.y += sampleTrans * sin(sample.pose.theta + sampleRot1);
     newSample.pose.theta = wrap_to_pi(sample.pose.theta + sampleRot1 + sampleRot2);
     newSample.pose.utime = utime_;
     newSample.parent_pose = sample.pose;
-    
-    double distance =  sqrt(pow(sample.pose.x - newSample.parent_pose.x,2)+pow(sample.pose.y - newSample.parent_pose.y,2));
-    if (distance > 5){
-        std::cout<<"dist" << distance <<std::endl;
+
+    double distance = sqrt(pow(sample.pose.x - newSample.parent_pose.x, 2) + pow(sample.pose.y - newSample.parent_pose.y, 2));
+    if (distance > 5)
+    {
+        std::cout << "dist" << distance << std::endl;
         // std::cout<<"trans:"<<sampleTrans <<std::endl;
         // std::cout<<"theta:"<<sampleRot1 <<","<<sampleRot2<<std::endl;
-
     }
 
-        // std::normal_distribution<double>epsilon1(0,k1_*fabs(alpha_));
+    // std::normal_distribution<double>epsilon1(0,k1_*fabs(alpha_));
     // std::normal_distribution<double>epsilon2(0,k2_*fabs(ds_));
     // std::normal_distribution<double>epsilon3(0,k1_*fabs(dtheta_ - alpha_));
 
@@ -102,6 +100,6 @@ mbot_lcm_msgs::particle_t ActionModel::applyAction(const mbot_lcm_msgs::particle
     // newSample.pose.y = (ds_ + epsilon2)*sin(previousPose_.theta + alpha_ + epsilon1);
     // newSample.pose.theta = dtheta_ + epsilon1 + epsilon3;
 
-
     return newSample;
 }
+

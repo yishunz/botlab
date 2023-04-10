@@ -244,7 +244,7 @@ mbot_lcm_msgs::pose_xyt_t ParticleFilter::estimatePosteriorPose(const ParticleLi
     for (auto &p: posterior){
         // std::cout<<"w:"<<p.weight<<std::endl;
         // best_particles.push_back(p);
-        if (p.weight >= 1.0*1/kNumParticles_){
+        if (p.weight >= 0.0*1/kNumParticles_){
             best_particles.push_back(p);
         }
         double distance =  sqrt(pow(p.pose.x - p.parent_pose.x,2)+pow(p.pose.y - p.parent_pose.y,2));
@@ -276,3 +276,4 @@ mbot_lcm_msgs::pose_xyt_t ParticleFilter::computeParticlesAverage(const Particle
     avg_pose.theta = std::atan2(sinThetaMean, cosThetaMean);
     return avg_pose;
 }
+
