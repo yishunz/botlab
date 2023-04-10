@@ -21,7 +21,7 @@ ActionModel::ActionModel(void)
 void ActionModel::resetPrevious(const mbot_lcm_msgs::pose_xyt_t &odometry)
 {
     // previousPose_ = odometry;
-    // prv_odo_ = odometry;
+    // prevPose_ = odometry;
 }
 
 bool ActionModel::updateAction(const mbot_lcm_msgs::pose_xyt_t& odometry)
@@ -43,14 +43,14 @@ bool ActionModel::updateAction(const mbot_lcm_msgs::pose_xyt_t& odometry)
     //     ds_ = ds_temp;
     // return moved;
     if(!initialized_){
-        previousPose_ = odometry;
+        prevPose_ = odometry;
         initialized_ = true;
     }
-    float deltaX = odometry.x - previousPose_.x;
-    float deltaY = odometry.y - previousPose_.y;
-    float deltaTheta = odometry.theta - previousPose_.theta;
+    float deltaX = odometry.x - prevPose_.x;
+    float deltaY = odometry.y - prevPose_.y;
+    float deltaTheta = odometry.theta - prevPose_.theta;
     trans_ = sqrt(deltaX*deltaX + deltaY*deltaY);
-    rot1_ = angle_diff(atan2(deltaY,deltaX),previousPose_.theta);
+    rot1_ = angle_diff(atan2(deltaY,deltaX),prevPose_.theta);
     float direction = 1.0;//change to 1.0?
     if(abs(rot1_) > M_PI/2.0){
         rot1_ = angle_diff(M_PI,rot1_);
@@ -64,7 +64,7 @@ bool ActionModel::updateAction(const mbot_lcm_msgs::pose_xyt_t& odometry)
         rot2Std_ = sqrt(k1_ * abs(rot2_));
     }
     trans_ *= direction;
-    previousPose_ = odometry;
+    prevPose_ = odometry;
     utime_ = odometry.utime;
     return moved_;
 }
